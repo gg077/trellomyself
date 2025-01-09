@@ -140,6 +140,41 @@
                     @blur="cancelNewList"
                 />
               </div>
+              <!-- Dropdown voor het verplaatsen van alle lijsten -->
+              <div class="relative inline-block">
+                <button
+                    class="text-blue-500 hover:text-blue-700 mt-2 mr-2 flex items-center"
+                    @click="showMoveAllDropdown = showMoveAllDropdown === element.id ? null : element.id"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       class="h-5 w-5"
+                       viewBox="0 0 20 20"
+                       fill="currentColor"
+                  >
+                    <path fill-rule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="ml-5 text-blue-500 hover:text-blue-700 mt-2"></span>
+                </button>
+
+                <!-- Dropdown menu -->
+                <div v-if="showMoveAllDropdown === element.id"
+                     class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-50"
+                >
+                  <div class="py-1">
+                    <template v-for="board in getAvailableBoards(element.id)" :key="board.id">
+                      <button
+                          @click="moveAllLists(element.id, board.id)"
+                          class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {{ board.title || 'Naamloos bord' }}
+                      </button>
+                    </template>
+                  </div>
+                </div>
+              </div>
               <button
                   class="text-blue-500 hover:text-blue-700 mt-2"
                   @click="showNewListInput(element.id)"
@@ -182,6 +217,20 @@ export default {
     onMounted(() => {
       listStore.loadLists();
     });
+
+    const showMoveAllDropdown = ref(null); // Voor het bijhouden welk bord de dropdown toont
+
+    const moveAllLists = (fromBoardId, toBoardId) => {
+      const listsToMove = boardLists.value[fromBoardId] || [];
+      listsToMove.forEach(list => {
+        listStore.updateListBoardId(list.id, toBoardId);
+      });
+      showMoveAllDropdown.value = null;
+    };
+
+    const getAvailableBoards = (currentBoardId) => {
+      return boardStore.boards.filter(board => board.id !== currentBoardId);
+    };
 
     const searchQuery = ref("");
     const newListBoardId = ref(null);
@@ -320,6 +369,9 @@ export default {
       showNewListInput,
       onDragEnd,
       onListDragEnd,
+      showMoveAllDropdown,
+      moveAllLists,
+      getAvailableBoards,
     };
   },
 };
