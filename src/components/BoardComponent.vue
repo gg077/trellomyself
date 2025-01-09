@@ -205,21 +205,30 @@ import ListComponent from './ListComponent.vue';
 
 export default {
   name: 'BoardComponent',
+  // Register components
   components: {
     ListComponent,
     draggable,
   },
   setup() {
+    // Initialize stores and state
     const boardStore = useBoardStore();
     const listStore = useListStore();
     const drag = ref(false);
 
+    // Load lists on component mount
     onMounted(() => {
       listStore.loadLists();
     });
 
+    // State for dropdown menus
     const showMoveAllDropdown = ref(null); // Voor het bijhouden welk bord de dropdown toont
+    const searchQuery = ref("");
+    const newListBoardId = ref(null);
+    const newListTitle = ref('');
+    const editingDescription = ref(null);
 
+    // Move all lists between boards
     const moveAllLists = (fromBoardId, toBoardId) => {
       const listsToMove = boardLists.value[fromBoardId] || [];
       listsToMove.forEach(list => {
@@ -228,14 +237,12 @@ export default {
       showMoveAllDropdown.value = null;
     };
 
+    // Get available boards for moving lists
     const getAvailableBoards = (currentBoardId) => {
       return boardStore.boards.filter(board => board.id !== currentBoardId);
     };
 
-    const searchQuery = ref("");
-    const newListBoardId = ref(null);
-    const newListTitle = ref('');
-    const editingDescription = ref(null);
+
 
     // Computed property voor lijsten per bord
     const boardLists = computed(() => {
@@ -246,6 +253,7 @@ export default {
       return lists;
     });
 
+    // Filter boards based on search query
     const filteredBoards = computed(() => {
       if (!searchQuery.value) return boardStore.boards;
 
@@ -263,6 +271,7 @@ export default {
       });
     });
 
+    // Sort boards with favorites first
     const sortedBoards = computed({
       get() {
         const boards = [...filteredBoards.value];
@@ -277,6 +286,7 @@ export default {
       },
     });
 
+    // Event handlers for drag and drop
     const onDragEnd = () => {
       boardStore.saveBoards();
     };
@@ -313,6 +323,7 @@ export default {
       listStore.saveLists();
     };
 
+    // Board management methods
     const addBoard = () => boardStore.addBoard();
     const updateTitle = (boardId, newTitle) => boardStore.updateBoardTitle(boardId, newTitle);
     const toggleDropdown = (boardId) => boardStore.toggleDropdown(boardId);
@@ -323,10 +334,12 @@ export default {
       editingDescription.value = editingDescription.value === boardId ? null : boardId;
     };
 
+    // List management methods
     const deleteList = (listId) => listStore.deleteList(listId);
     const updateListColor = (listId, newColor) => listStore.updateListColor(listId, newColor);
     const updateListDeadline = (listId, newDeadline) => listStore.updateListDeadline(listId, newDeadline);
 
+    // New list management methods
     const saveNewList = (boardId) => {
       if (newListTitle.value.trim()) {
         listStore.addList(boardId, newListTitle.value.trim());
@@ -344,6 +357,7 @@ export default {
       newListTitle.value = '';
     };
 
+    // Return all methods and computed properties
     return {
       boardStore,
       listStore,
